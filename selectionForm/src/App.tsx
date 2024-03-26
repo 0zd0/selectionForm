@@ -9,7 +9,9 @@ function App() {
 				resetCSS={import.meta.env.DEV}
 				disableGlobalStyle={import.meta.env.PROD}
 			>
-				<FormComponent/>
+				<div className="ast-container">
+					<FormComponent/>
+				</div>
 			</ChakraProvider>
 		</>
 	)

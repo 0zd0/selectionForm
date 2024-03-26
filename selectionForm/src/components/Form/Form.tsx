@@ -1,4 +1,14 @@
-import { Box, Button, Container, Heading, Link, NumberInput, NumberInputField, SimpleGrid } from '@chakra-ui/react'
+import {
+	Box,
+	Button,
+	Container,
+	css, Divider,
+	Grid, GridItem,
+	Heading,
+	Link,
+	NumberInput,
+	NumberInputField,
+} from '@chakra-ui/react'
 import { Dispatch, PropsWithChildren, useEffect, useState } from "react"
 import styled from '@emotion/styled'
 import { CategoryApi, IWpCategory } from "@/api/wp/category"
@@ -15,8 +25,31 @@ import { FiltersAction } from "@/contexts/filters/reducers.ts"
 import { IWpProduct, ProductApi } from "@/api/wp/product"
 
 const Form = styled.form`
+  margin-bottom: 30px;
   width: 100%;
 `
+
+const DefaultSelect = styled(Select)(props => (
+	css({
+		bg: '#fff',
+		color: '#000',
+		fontSize: '16px',
+		paddingY: '0 !important',
+		borderRadius: '0 !important'
+	})(props.theme)
+))
+
+DefaultSelect.defaultProps = {
+	iconColor: '#000',
+}
+
+const DefaultGridItem = styled(GridItem)(props => (
+	css({
+		w: '100%',
+		display: 'flex',
+		alignItems: 'flex-end'
+	})(props.theme)
+))
 
 const findFieldKeysByKey = ( schema: { [key: string]: AcfSchemaFields }, key: string, filterKey: string = '' ): {
 	fieldKey: string,
@@ -38,7 +71,9 @@ const findFieldKeysByKey = ( schema: { [key: string]: AcfSchemaFields }, key: st
 	return null
 }
 
-const findFilterKeysDependingOnConditionalLogic = ( schema: { [key: string]: AcfSchemaFields }, key: string ): string[] => {
+const findFilterKeysDependingOnConditionalLogic = ( schema: {
+	[key: string]: AcfSchemaFields
+}, key: string ): string[] => {
 	const filterKeys: string[] = []
 	for (const fieldKey in schema) {
 		const field = schema[fieldKey]
@@ -55,7 +90,9 @@ const findFilterKeysDependingOnConditionalLogic = ( schema: { [key: string]: Acf
 	return filterKeys
 }
 
-const clearFilterKeysDependingOnConditionalLogic = (schema: { [key: string]: AcfSchemaFields }, key: string, dispatch: Dispatch<FiltersAction>) => {
+const clearFilterKeysDependingOnConditionalLogic = ( schema: {
+	[key: string]: AcfSchemaFields
+}, key: string, dispatch: Dispatch<FiltersAction> ) => {
 	const filterKeys = findFilterKeysDependingOnConditionalLogic(schema, key)
 	for (const filterKey of filterKeys) {
 		dispatch({
@@ -65,7 +102,6 @@ const clearFilterKeysDependingOnConditionalLogic = (schema: { [key: string]: Acf
 			}
 		})
 	}
-	console.log(filterKeys)
 }
 
 const getFieldComponent = ( field: AcfSchemaFields, key: string, schema: IAcfSchema, filters: FiltersContextType ) => {
@@ -129,19 +165,28 @@ const AcfFieldSelectComponent = ( {field, fieldKey, schema}: AcfFieldSelectProps
 	}
 	return (
 		<>
-			<Text fontSize='xs' m={0}>{field.label}</Text>
-			<Select
-				onChange={( e ) => changeSelect(e.target.value)}
-				fontSize={'16px'}
+			<VStack
+				alignItems={'flex-start'}
+				w={'100%'}
 			>
-				<option value={''}>Не выбрано</option>
-				{Object.keys(field.choices).map(key => {
-					const choice = field.choices[key]
-					return (
-						<option value={key} key={key}>{choice}</option>
-					)
-				})}
-			</Select>
+				<Text 
+					fontSize='sm' 
+					m={0}
+					color={'#fff'}
+				>{field.label}</Text>
+				<DefaultSelect
+					onChange={( e ) => changeSelect(e.target.value)}
+					fontSize={'16px'}
+				>
+					<option value={''}>Не выбрано</option>
+					{Object.keys(field.choices).map(key => {
+						const choice = field.choices[key]
+						return (
+							<option value={key} key={key}>{choice}</option>
+						)
+					})}
+				</DefaultSelect>
+			</VStack>
 		</>
 	)
 }
@@ -155,18 +200,36 @@ const AcfFieldGroupComponent = ( {field, fieldKey, schema}: AcfFieldGroupProps )
 	const fields = field.properties
 	return (
 		<>
-			<Text fontSize='sm' m={0}>{field.label}</Text>
-			<HStack spacing={'10px 10px'} w={'100%'} wrap={'wrap'}>
-				{Object.keys(fields).map(( childKey ) => {
-					const field = fields[childKey]
-					const FieldComponent = getFieldComponent(field, `${fieldKey}_${childKey}`, schema, filters)
-					if (!FieldComponent) return;
-					return (
-						<div key={field.key}>
-							{FieldComponent}
-						</div>
-					)
-				})}
+			<HStack
+				justifyContent={'space-between'}
+				w={'100%'}
+			>
+				<Text
+					fontSize='sm'
+					m={0}
+					color={'#fff'}
+				>{field.label}</Text>
+				<HStack
+					spacing={'10px 10px'}
+					w={'50%'}
+					flex={'0 0 auto'}
+					h={'100%'}
+					// wrap={'wrap'}
+				>
+					{Object.keys(fields).map(( childKey ) => {
+						const field = fields[childKey]
+						const FieldComponent = getFieldComponent(field, `${fieldKey}_${childKey}`, schema, filters)
+						if (!FieldComponent) return;
+						return (
+							<HStack
+								key={field.key}
+								h={'100%'}
+							>
+								{FieldComponent}
+							</HStack>
+						)
+					})}
+				</HStack>
 			</HStack>
 		</>
 	)
@@ -184,14 +247,22 @@ const AcfFieldNumberComponent = ( {field, fieldKey}: AcfFieldNumberProps ) => {
 	const min = 0
 	return (
 		<>
-			<Text fontSize='xs' m={0}>{field.label}</Text>
+			{/*<Text fontSize='xs' m={0}>{field.label}</Text>*/}
 			<NumberInput
 				size={'sm'}
 				inputMode={'numeric'}
 				min={min} isValidCharacter={(value => /^[0-9]+$/.test(value))}
 				onChange={( value ) => changeInput(value)}
+				h={'100%'}
 			>
-				<NumberInputField/>
+				<NumberInputField
+					placeholder={field.label}
+					p={'5px 5px'}
+					bg={'#fff'}
+					color={'#000'}
+					borderRadius={'0'}
+					minH={'40px'}
+				/>
 			</NumberInput>
 		</>
 	)
@@ -254,82 +325,167 @@ const FormComponent = () => {
 
 	return (
 		<>
-			<Container maxW='900px'>
-				<Form>
-					<VStack
-						spacing={4}
+			<Container
+				maxW='1440px'
+			>
+				<Form
+				>
+					<Box
 						alignItems={'flex-start'}
 					>
-						<Heading as='h2' size='lg'>
-							Выберите тип станков, а так же характеристики требуемого оборудования:
+						<Heading
+							as='h2'
+							size='lg'
+							textAlign={'center'}
+							fontWeight={400}
+							w={'100%'}
+							textTransform={'uppercase'}
+							m={'0 !important'}
+							color={'#fff'}
+						>
+							Выберите тип станка и необходимые характеристики
 						</Heading>
-						<HStack spacing='24px' w={'100%'}>
+						<VStack
+							w={'100%'}
+							mb={'60px'}
+							mt={'26px'}
+						>
+							<Divider
+								w={'80%'}
+								borderWidth={'1px'}
+								opacity={1}
+							/>
+						</VStack>
+						<Grid templateColumns={{base: 'repeat(1, 1fr)', md: 'repeat(3, 1fr)'}} gap={'30px 60px'} w={'100%'}>
 							{parentCategories.length > 0 &&
-                                <VStack alignItems={'flex-start'}>
-                                    <Text fontSize='sm' m={0}>Категория</Text>
-                                    <Select
-                                        onChange={( e ) => changeParentCategory(e.target.value)}
-                                        value={selectedParentCategory ? selectedParentCategory : ''}
-                                        fontSize={'16px'}
-
+                                <DefaultGridItem>
+                                    <VStack
+                                        alignItems={'flex-start'}
+                                        w={'100%'}
                                     >
-                                        <option value={''}>Не выбрано</option>
-										{parentCategories.map(category => (
-											<option value={category.id} key={category.id}>{category.name}</option>
-										))}
-                                    </Select>
-                                </VStack>
+                                        <Text
+											fontSize='sm'
+											m={0}
+                                            color={'#fff'}
+										>Категория</Text>
+                                        <DefaultSelect
+                                            onChange={( e ) => changeParentCategory(e.target.value)}
+                                            value={selectedParentCategory ? selectedParentCategory : ''}
+                                        >
+                                            <option value={''}>Не выбрано</option>
+											{parentCategories.map(category => (
+												<option value={category.id} key={category.id}>{category.name}</option>
+											))}
+                                        </DefaultSelect>
+                                    </VStack>
+                                </DefaultGridItem>
 							}
 							{childCategories.length > 0 &&
-                                <VStack alignItems={'flex-start'}>
-                                    <Text fontSize='sm' m={0}>Подкатегория</Text>
-                                    <Select
-                                        onChange={( e ) => changeChildCategory(e.target.value)}
-                                        value={selectedChildCategory ? selectedChildCategory : ''}
-                                        fontSize={'16px'}
-
+                                <DefaultGridItem>
+                                    <VStack
+                                        alignItems={'flex-start'}
+                                        w={'100%'}
                                     >
-                                        <option value={''}>Не выбрано</option>
-										{childCategories.map(category => (
-											<option value={category.id} key={category.id}>{category.name}</option>
-										))}
-                                    </Select>
-                                </VStack>
+                                        <Text
+											fontSize='sm'
+											m={0}
+                                            color={'#fff'}
+										>Подкатегория</Text>
+                                        <DefaultSelect
+                                            onChange={( e ) => changeChildCategory(e.target.value)}
+                                            value={selectedChildCategory ? selectedChildCategory : ''}
+                                            fontSize={'16px'}
+
+                                        >
+                                            <option value={''}>Не выбрано</option>
+											{childCategories.map(category => (
+												<option value={category.id} key={category.id}>{category.name}</option>
+											))}
+                                        </DefaultSelect>
+                                    </VStack>
+                                </DefaultGridItem>
 							}
-						</HStack>
-						<HStack spacing={'10px 24px'} w={'100%'} wrap={'wrap'}>
 							{acfSchema && Object.keys(acfSchema).map(( key ) => {
 								const field = acfSchema[key]
 								const FieldComponent = getFieldComponent(field, key, acfSchema, filters)
 								if (!FieldComponent) return;
 								return (
-									<div key={field.key}>
+									<DefaultGridItem
+										key={field.key}
+									>
 										{FieldComponent}
-									</div>
+									</DefaultGridItem>
 								)
 							})}
+						</Grid>
+						<HStack
+							marginTop={'80px'}
+							justifyContent={'center'}
+							spacing={'96px'}
+						>
+							<Button
+								onClick={() => getProducts()}
+								borderRadius={0}
+								className={'selection-form__button'}
+								textTransform={'uppercase'}
+							>Подобрать</Button>
+							<Link
+								className={'selection-form__button--gray'}
+								href={'#'}
+								textTransform={'uppercase'}
+							>Заказать консультацию</Link>
 						</HStack>
-						<Button
-							onClick={() => getProducts()}
-						>Подобрать</Button>
-					</VStack>
+
+					</Box>
 				</Form>
-				{products?.length === 0 && <Text fontSize='sm' marginY={10}>Таких товаров нет</Text>}
+				{products?.length === 0 && <Text
+					fontSize='sm'
+					marginY={10}
+                    color={'#fff'}
+				>Не найдено</Text>}
 				{products && products.length > 0 &&
-                    <SimpleGrid columns={4} spacing={'20px'} marginY={10}>
-						{products.map(( product, index ) => {
-							return (
-								<>
-									<Link target={'_blank'} href={product.post_link}>
-										<Box bg={'#EDF2F7'} p={2} key={index}>
-											<Text fontSize='lg' m={0}>{product.post_title}</Text>
-											<Text fontSize='sm' dangerouslySetInnerHTML={{__html: product.post_content}} m={0}></Text>
-										</Box>
-									</Link>
-								</>
-							)
-						})}
-                    </SimpleGrid>
+                    <>
+                        <ul className="products columns-1">
+							{products.map(( product, index ) => {
+								return (
+									<>
+										<li
+											key={index}
+											className="ast-grid-common-col ast-full-width ast-article-post remove-featured-img-padding desktop-align-left tablet-align-left mobile-align-left product type-product post-814 status-publish first instock product_cat-29 has-post-thumbnail shipping-taxable product-type-simple">
+											<div className="astra-shop-thumbnail-wrap"><a
+												href={product.post_link}
+												className="woocommerce-LoopProduct-link woocommerce-loop-product__link"></a>
+											</div>
+											<div className="product-item__box">
+												<div className="product-item__info">
+													<a href={product.post_link}
+													   className="ast-loop-product__link"><h2
+														className="woocommerce-loop-product__title">{product.post_title}</h2>
+													</a>
+													<div className="ast-woo-shop-product-description"
+														 dangerouslySetInnerHTML={{__html: product.post_content}}>
+													</div>
+												</div>
+												<div className="product-item__right">
+													<div className="product-item__img">
+														<img
+															src={product.post_image}
+															className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
+															alt="" decoding="async"
+														/></div>
+													<div className="product-item__btns">
+														<a href="#" className="btn--primary">УЗНАТЬ ЦЕНУ</a>
+														<a href={product.post_link}
+														   className="btn--gray">ПОДРОБНЕЕ</a>
+													</div>
+												</div>
+											</div>
+										</li>
+									</>
+								)
+							})}
+                        </ul>
+                    </>
 				}
 			</Container>
 		</>

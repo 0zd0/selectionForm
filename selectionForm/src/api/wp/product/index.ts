@@ -6,6 +6,7 @@ export interface IWpProduct {
 	post_title: string
 	post_content: string
 	post_link: string
+	post_image: string
 }
 
 export type ProductsGetResponse = IWpProduct[]
